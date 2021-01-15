@@ -1,0 +1,23 @@
+@import '../App.css';
+
+.action{
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.left{
+  display: inline-flex;
+  width: 70%;
+  text-align: left;
+  align-items: flex-start;
+}
+
+.search{
+  display: inline-block;
+  width: 60%;
+}
+
+.right{
+  display: inline-block;
+}
