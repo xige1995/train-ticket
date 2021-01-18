@@ -17,7 +17,7 @@ export default function Sider (props) {
             mode="inline"
         >
             <Menu.Item key="Home">Home</Menu.Item>
-            <Menu.Item key="Form">Form</Menu.Item>
+            <Menu.Item key="Other">Other</Menu.Item>
         </Menu>
     );
 }

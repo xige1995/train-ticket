@@ -1,10 +1,15 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import { useHistory } from "react-router-dom";
 import {
     Table, 
     Space,
-    Button
+    Button,
+    Popover
 } from 'antd'
+
+import {
+    MoreOutlined
+} from '@ant-design/icons';
 
 import MySearch from '../components/MySearch'
 import SetColumn from '../components/SetColumn'
@@ -14,12 +19,18 @@ import {
     SettingOutlined,
     SyncOutlined
 } from '@ant-design/icons';
+import connect from "react-redux/es/connect/connect";
 
-export default  function MyTable(props) {
-    console.log('props', props)
+function MyTable(props) {
     let history = useHistory();
-
-    const columns = [
+    const { checkedList } = props
+    const content = (
+        <div>
+            <p>Content</p>
+            <p>Content</p>
+        </div>
+    );
+    const allColumns =   [
         {
             title: 'Name',
             key: 'Name',
@@ -32,24 +43,8 @@ export default  function MyTable(props) {
                 {
                     text: 'Jim',
                     value: 'Jim',
-                },
-                {
-                    text: 'Submenu',
-                    value: 'Submenu',
-                    children: [
-                        {
-                            text: 'Green',
-                            value: 'Green',
-                        },
-                        {
-                            text: 'Black',
-                            value: 'Black',
-                        },
-                    ],
-                },
+                }
             ],
-            // specify the condition of filtering result
-            // here is that finding the name started with `value`
             onFilter: (value, record) => record.name.indexOf(value) === 0,
             sorter: (a, b) => a.name.length - b.name.length,
             sortDirections: ['descend'],
@@ -83,14 +78,18 @@ export default  function MyTable(props) {
         {
             title: 'Action',
             key: 'action',
-            render: (text, record) => (
+            render: (_, record) => (
                 <Space size="middle">
-                    <a>Invite {record.name}</a>
-                    <a onClick={handelDel}>Delete</a>
+                    <a onClick={() => handelOperate(record, 'edit')}>修改</a>
+                    <a onClick={ () => handelOperate(record, 'detail')}>详情</a>
+                    <a onClick={ () => handelOperate(record, 'load')}>下载</a>
+                    <Popover placement="topLeft" title='更对操作' content={( <a onClick={() => handelOperate(record, 'clone')}>克隆</a>)} arrowPointAtCenter>
+                        <MoreOutlined />
+                    </Popover>
                 </Space>
             ),
         }
-    ];
+    ]
 
     const data = [
         {
@@ -161,6 +160,7 @@ export default  function MyTable(props) {
         },
     ];
 
+    const [columns, setColumns] = useState()
     const [loading, setLoading] = useState(false)
     const [pagination, setPagination] = useState({
         total: 11,
@@ -170,15 +170,31 @@ export default  function MyTable(props) {
     })
     const [isSetModalVisible, setIsSetModalVisible] = useState(false);
 
+    useEffect(() => {
+       let newColums = allColumns.filter(item =>  checkedList.includes(item.key))
+        setColumns(newColums)
+    },[checkedList])
 
-    const handelDel = (e) => {
-        console.log( 'del', e)
+    const handelOperate = (record, type) => {
+        console.log( 'handelOperate', record, type)
+        switch (type) {
+            case 'edit':
+                break;
+            case 'detail':
+                break
+            case 'load':
+                break;
+            case 'clone':
+                break;
+            default:
+                return;
+        }
     }
     const handleAdd  = (e) => {
+       console.log(' props.history',  props.history)
         history.push({
             pathname: '/form',
-            search: '?the=query',
-            state: { some: 'state' }
+            search: '?regionId=cn-hangzhou&vpcId=hangzhou-1'
         });
     }
     const handleSet  = (e) => {
@@ -191,6 +207,14 @@ export default  function MyTable(props) {
     const handleTableChange = (pagination, filters, sorter, extra) =>  {
         setLoading(true)
         console.log('params', pagination, filters, sorter, extra);
+        let data = {
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            columnKey: sorter.field,
+            order: sorter.order,
+            filters: sorter.column.filters
+        }
+        console.log('handleTableChange', data)
         setTimeout( () => {
             setLoading(false)
         },300)
@@ -218,7 +242,21 @@ export default  function MyTable(props) {
                 loading={loading}
                 onChange={handleTableChange}
             />
-            <SetColumn isModalVisible={isSetModalVisible} setIsModalVisible={setIsSetModalVisible} columns={columns} />
+            <SetColumn
+                isModalVisible={isSetModalVisible}
+                setIsModalVisible={setIsSetModalVisible}
+                allColumns={allColumns}
+            />
         </div>
     )
 }
+
+
+function mapStateToProps(state) {
+    return {
+        ...state
+    }
+}
+
+
+export default connect(mapStateToProps)(MyTable)

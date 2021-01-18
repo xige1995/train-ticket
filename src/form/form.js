@@ -1,6 +1,6 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import { useHistory } from "react-router-dom";
-import { Form, Input, Button, Select } from 'antd';
+import { Form, Button, Select } from 'antd';
 
 const { Option } = Select;
 
@@ -12,21 +12,81 @@ const tailLayout = {
     wrapperCol: { offset: 2, span: 16 },
 };
 
-export default function MyForm () {
-    const [form] = Form.useForm();
+const regionIds  = [
+    "cn-hangzhou",
+    "cn-shenzhen",
+    "cn-beijing",
+    "cn-xian"
+]
 
-    const onGenderChange = (value) => {
-        switch (value) {
-            case 'male':
-                form.setFieldsValue({ note: 'Hi, man!' });
-                return;
-            case 'female':
-                form.setFieldsValue({ note: 'Hi, lady!' });
-                return;
-            case 'other':
-                form.setFieldsValue({ note: 'Hi there!' });
-                return;
+const vpcIds = {
+    "cn-hangzhou": [
+        "hangzhou-1",
+        "hangzhou-2",
+        "hangzhou-3",
+        "hangzhou-4",
+    ],
+    "cn-shenzhen": [
+        "shenzhen-1",
+        "shenzhen-2",
+        "shenzhen-3",
+        "shenzhen-4",
+    ],
+    "cn-beijing": [
+        "beijing-1",
+        "beijing-2",
+        "beijing-3",
+        "beijing-4",
+    ],
+    "cn-xian": [
+        "xian-1",
+        "xian-2",
+        "xian-3",
+        "xian-4",
+    ],
+}
+
+const mock = {
+    "regionId": {
+        "type": "regionId",
+        "description": "regionIddesc",
+        "default" : 'cn-hangzhou'
+    },
+    "vpcid": {
+        "type": "vpcId",
+        "description": "vpciddesc",
+        "dependend":['regionId'],
+        "default": ''
+    },
+}
+
+export default function MyForm (props) {
+    const [form] = Form.useForm();
+    let history = useHistory();
+
+    const [vpcIdArr, setVpcIdsArr] = useState([])
+
+    useEffect( () => {
+        let search = history.location.search.substring(1).split('&');
+        let searchArr = search.map( item => {
+            return item.split('=')[1]
+        })
+        form.setFieldsValue({ regionId: searchArr[0] });
+        form.setFieldsValue({ vpcId: searchArr[1] });
+
+        setVpcIdsArr(vpcIds[searchArr[0]])
+    },[])
+
+    const onRegionIdChange = (value) => {
+        if(!value){
+            return
         }
+        setVpcIdsArr(vpcIds[value])
+        form.setFieldsValue({ vpcId: vpcIds[value][0] });
+    };
+
+    const onVpcIdsChange = (value) => {
+
     };
 
     const onFinish = (values) => {
@@ -37,40 +97,33 @@ export default function MyForm () {
         form.resetFields();
     };
 
-    const onFill = () => {
-        form.setFieldsValue({
-            note: 'Hello world!',
-            gender: 'male',
-        });
-    };
-
     return (
         <Form {...layout} form={form} name="control-hooks" onFinish={onFinish}>
-            <Form.Item name="note" label="Note" rules={[{ required: true }]}>
-                <Input />
-            </Form.Item>
-            <Form.Item name="gender" label="Gender" rules={[{ required: true }]}>
+            <Form.Item name="regionId" label="regionId" rules={[{ required: true }]}>
                 <Select
-                    placeholder="Select a option and change input text above"
-                    onChange={onGenderChange}
+                    placeholder="请选择regionId"
+                    onChange={onRegionIdChange}
                     allowClear
                 >
-                    <Option value="male">male</Option>
-                    <Option value="female">female</Option>
-                    <Option value="other">other</Option>
+                    {
+                        regionIds.map( (item,index) => {
+                           return <Option value={item} key={index}>{item}</Option>
+                        })
+                    }
                 </Select>
             </Form.Item>
-            <Form.Item
-                noStyle
-                shouldUpdate={(prevValues, currentValues) => prevValues.gender !== currentValues.gender}
-            >
-                {({ getFieldValue }) => {
-                    return getFieldValue('gender') === 'other' ? (
-                        <Form.Item name="customizeGender" label="Customize Gender" rules={[{ required: true }]}>
-                            <Input />
-                        </Form.Item>
-                    ) : null;
-                }}
+            <Form.Item name="vpcId" label="vpcId" rules={[{ required: true }]}>
+                <Select
+                    placeholder="请选择vpcId"
+                    onChange={onVpcIdsChange}
+                    allowClear
+                >
+                    {
+                        vpcIdArr.map( (item,index) => {
+                            return <Option value={item} key={index}>{item}</Option>
+                        })
+                    }
+                </Select>
             </Form.Item>
             <Form.Item {...tailLayout}>
                 <Button type="primary" htmlType="submit">
@@ -78,9 +131,6 @@ export default function MyForm () {
                 </Button>
                 <Button htmlType="button" onClick={onReset}>
                     Reset
-                </Button>
-                <Button type="link" htmlType="button" onClick={onFill}>
-                    Fill form
                 </Button>
             </Form.Item>
         </Form>

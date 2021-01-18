@@ -1,44 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Checkbox } from 'antd';
+import { connect } from 'react-redux'
 
-export default function SetColumn (prop) {
-    const { isModalVisible, setIsModalVisible, columns } = prop
+function SetColumn (props) {
+    const { isModalVisible, setIsModalVisible, allColumns, checkedList } = props
 
-    const handleOk = () => {
-        setIsModalVisible(false);
-    };
-
-    const handleCancel = () => {
-        setIsModalVisible(false);
-    };
-
-    const [options, setOptions] = useState([]);
-
-    useEffect(() => {
-      let cols = columns.map(v => {
+    const [options, setOptions] = useState(() => {
+        return allColumns.map(v => {
             return {
                 value: v.key,
                 label: v.title
             }
         })
-        setOptions(cols)
-    }, [isModalVisible])
+    },[isModalVisible]);
 
+    const [ checked, setChecked ] = useState(checkedList)
 
-    const [checkedList, setCheckedList] = useState();
+    const handleOk = () => {
+        props.dispatch({
+            type: 'CHECKED_LIST',
+            val: checked
+        })
+        console.log('handleOk',props)
+        setIsModalVisible(false);
+    };
+
+    const handleCancel = () => {
+        console.log('handleCancel checkedList', checkedList)
+        setChecked(checkedList)
+        setIsModalVisible(false);
+    };
 
     const onChange = list => {
-        setCheckedList(list);
+        setChecked(list)
         console.log('setCheckedList list', list)
     };
 
     return(
-        <Modal title="自定义表头" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+        <Modal title="自定义列表项" destroyOnClose={true} visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
             <Checkbox.Group
                 options={options}
-                defaultValue={['Name']}
+                defaultValue={checked}
                 onChange={onChange}
             />
         </Modal>
     )
 }
+
+
+function mapStateToProps(state) {
+    return {
+        ...state
+    }
+}
+
+export default connect(mapStateToProps)(SetColumn)
